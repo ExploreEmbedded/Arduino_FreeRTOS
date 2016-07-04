@@ -102,6 +102,8 @@
 
 /* Variant (AVR) specific configuration options. */
 #include "FreeRTOSVariant.h"
+#include "queue.h"
+#include "semphr.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -192,7 +194,7 @@ extern "C" {
 #endif
 
 #ifndef INCLUDE_pcTaskGetTaskName
-	#define INCLUDE_pcTaskGetTaskName 0
+	#define INCLUDE_pcTaskGetTaskName 1
 #endif
 
 #ifndef configUSE_APPLICATION_TASK_TAG
@@ -736,7 +738,7 @@ extern "C" {
 #endif
 
 #ifndef configUSE_STATS_FORMATTING_FUNCTIONS
-	#define configUSE_STATS_FORMATTING_FUNCTIONS 0
+	#define configUSE_STATS_FORMATTING_FUNCTIONS 1
 #endif
 
 #ifndef portASSERT_IF_INTERRUPT_PRIORITY_INVALID

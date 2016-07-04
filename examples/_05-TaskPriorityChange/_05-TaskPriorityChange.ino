@@ -1,11 +1,11 @@
 /***************************************************************************************************
                             ExploreEmbedded Copyright Notice    
 ****************************************************************************************************
- * File:   01-TaskSwitching
+ * File:   05-TaskPriorityChange
  * Version: 15.0
  * Author: ExploreEmbedded
  * Website: http://www.exploreembedded.com/wiki
- * Description: File contains the free rtos example to demonstarte the task switching.
+ * Description: File contains the free rtos example to demonstarte task priority change.
 
 This code has been developed and tested on ExploreEmbedded boards.  
 We strongly believe that the library works on any of development boards for respective controllers. 
@@ -28,24 +28,25 @@ and that both those copyright notices and this permission notice appear in suppo
 
 #include <Arduino_FreeRTOS.h>
 
+TaskHandle_t TaskHandle_1;
+TaskHandle_t TaskHandle_2;
+TaskHandle_t TaskHandle_4;
+
 void setup()
-{
-  
+{  
   Serial.begin(9600);
   Serial.println(F("In Setup function"));
 
-  /* Create two tasks with priorities 1 and 2. An idle task is also created, 
-     which will be run when there are no tasks in RUN state */
-
-  xTaskCreate(MyTask1, "Task1", 100, NULL, 1, NULL);
-  xTaskCreate(MyTask2, "Task2", 100, NULL, 2, NULL);
-  xTaskCreate(MyIdleTask, "IdleTask", 100, NULL, 0, NULL);
+  /* Create three tasks with priorities 1,2 and 3. Capture the Task details to respective handlers */
+  xTaskCreate(MyTask1, "Task1", 120, NULL, 1, &TaskHandle_1); 
 }
 
 
 void loop()
 {
-  // DO nothing
+  // put your main code here, to run repeatedly:
+  Serial.println(F("Loop function"));
+  delay(50);
 }
 
 
@@ -54,8 +55,18 @@ static void MyTask1(void* pvParameters)
 {
   while(1)
   {
-    Serial.println(F("Task1"));
-    vTaskDelay(100/portTICK_PERIOD_MS);
+    Serial.print(F("Task1 with Priority:"));
+    Serial.print(uxTaskPriorityGet(TaskHandle_1));
+    Serial.println(F(" Creating Task2"));
+    
+    xTaskCreate(MyTask2, "Task2", 100, NULL, 3, &TaskHandle_2);
+    
+    Serial.print(F("Task1 with Priority:"));
+    Serial.print(uxTaskPriorityGet(TaskHandle_1));
+    Serial.println(F(" Deleting All"));
+    vTaskDelete(TaskHandle_2);   // Delete task2 and task4 using their handles
+    vTaskDelete(TaskHandle_4); 
+    vTaskDelete(TaskHandle_1);    // Delete the task using the TaskHandle_1
   }
 }
 
@@ -65,19 +76,25 @@ static void MyTask2(void* pvParameters)
 {
   while(1)
   {    
-    Serial.println(F("Task2"));
-    vTaskDelay(150/portTICK_PERIOD_MS);
+    Serial.println(F("Task2 Running, Creating Task4"));
+    xTaskCreate(MyTask4, "Task4", 100, NULL, 4, &TaskHandle_4);
+    
+    Serial.println(F("Back in Task2, Deleting itself"));
+    vTaskDelete(NULL);     //Delete own task by passing NULL(TaskHandle_2 can also be used)
   }
 }
 
 
-/* Idle Task with priority Zero */ 
-static void MyIdleTask(void* pvParameters)
+
+/* Task4 with priority 4 */
+static void MyTask4(void* pvParameters)
 {
-  while(1)
-  {
-    Serial.println(F("Idle state"));
-    delay(50);
-  }
-}
+    Serial.println(F("Task4 Running, Changing Priority of Task1 from 1-3"));
+    vTaskPrioritySet(TaskHandle_1,3); //Change the priority of task1 to 3 which is greater than task2
 
+    while(1)
+    {
+      Serial.println(F("Back in Task4 "));
+      vTaskDelay(100/portTICK_PERIOD_MS);   
+    }
+}

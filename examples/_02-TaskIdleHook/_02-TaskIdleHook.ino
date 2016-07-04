@@ -1,11 +1,11 @@
 /***************************************************************************************************
                             ExploreEmbedded Copyright Notice    
 ****************************************************************************************************
- * File:   01-TaskSwitching
+ * File:   02-TaskIdleHook
  * Version: 15.0
  * Author: ExploreEmbedded
  * Website: http://www.exploreembedded.com/wiki
- * Description: File contains the free rtos example to demonstarte the task switching.
+ * Description: File contains the free rtos example to demonstarte the task switching along with task hook function.
 
 This code has been developed and tested on ExploreEmbedded boards.  
 We strongly believe that the library works on any of development boards for respective controllers. 
@@ -34,18 +34,19 @@ void setup()
   Serial.begin(9600);
   Serial.println(F("In Setup function"));
 
-  /* Create two tasks with priorities 1 and 2. An idle task is also created, 
-     which will be run when there are no tasks in RUN state */
+  /* Create two tasks with priorities 1 and 2. 
+   * Enable the Idle Task Hook by setting configUSE_IDLE_HOOK to 1, by this the loop function can be used as Idle task*/
 
   xTaskCreate(MyTask1, "Task1", 100, NULL, 1, NULL);
   xTaskCreate(MyTask2, "Task2", 100, NULL, 2, NULL);
-  xTaskCreate(MyIdleTask, "IdleTask", 100, NULL, 0, NULL);
 }
 
 
 void loop()
 {
-  // DO nothing
+  // Hooked to IDle task, it will run whenever CPU is idle
+  Serial.println(F("Loop function"));
+  delay(50);
 }
 
 
@@ -70,14 +71,4 @@ static void MyTask2(void* pvParameters)
   }
 }
 
-
-/* Idle Task with priority Zero */ 
-static void MyIdleTask(void* pvParameters)
-{
-  while(1)
-  {
-    Serial.println(F("Idle state"));
-    delay(50);
-  }
-}
 
